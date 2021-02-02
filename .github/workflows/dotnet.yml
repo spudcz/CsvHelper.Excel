@@ -1,8 +1,10 @@
-name: .NET CI
+name: .NET
 
-on:  
+on:
+  push:
+    branches: [ main, release/* ]
   pull_request:
-    types: [opened]
+    branches: [ main, release/* ]
 
 jobs:
   build:
@@ -32,5 +34,7 @@ jobs:
     - name: Test
       run: dotnet test --no-build --configuration Release --verbosity normal ./src/CsvHelper.Excel.sln
     - name: Pack
-      run: dotnet pack --no-build --configuration Release --version-suffix="${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}" ./src/CsvHelper.Excel/CsvHelper.Excel.csproj --output .    
+      run: dotnet pack --no-build --configuration Release --version-suffix="${{ steps.gitversion.outputs.nuGetPreReleaseTagV2 }}" ./src/CsvHelper.Excel/CsvHelper.Excel.csproj --output .
+    - name: PushNuget
+      run: dotnet nuget push *.nupkg --source https://api.nuget.org/v3/index.json --api-key ${{secrets.NUGET_TOKEN}} --skip-duplicate
     

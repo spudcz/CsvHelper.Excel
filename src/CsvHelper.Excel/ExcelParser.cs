@@ -22,7 +22,6 @@ namespace CsvHelper.Excel
         private readonly Stream _stream;
         private int _rawRow = 1;
         private string[] _currentRecord;
-        private int _lastRow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelParser"/> class.
@@ -90,37 +89,20 @@ namespace CsvHelper.Excel
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelParser"/> class.
         /// </summary>
-        /// <param name="path">The stream.</param>
-        /// <param name="sheetName">The sheet name</param>
-        /// <param name="configuration">The configuration.</param>
-        public ExcelParser(string path, string sheetName, CsvConfiguration configuration) : this(
-            File.Open(path, FileMode.OpenOrCreate, FileAccess.Read), sheetName, configuration)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ExcelParser"/> class.
-        /// </summary>
         /// <param name="stream">The stream.</param>
         /// <param name="sheetName">The sheet name</param>
         /// <param name="configuration">The configuration.</param>
-        public ExcelParser(Stream stream, string sheetName, CsvConfiguration configuration)
+        private ExcelParser(Stream stream, string sheetName, CsvConfiguration configuration)
         {
             var workbook = new XLWorkbook(stream, XLEventTracking.Disabled);
 
             _worksheet = string.IsNullOrEmpty(sheetName) ? workbook.Worksheet(1) : workbook.Worksheet(sheetName);
 
             Configuration = configuration ?? new CsvConfiguration(CultureInfo.InvariantCulture);
-            _stream = stream;
-            var lastRowUsed = _worksheet.LastRowUsed();
-            if (lastRowUsed != null)
-            {
-                _lastRow = lastRowUsed.RowNumber();
+            this._stream = stream;
 
-                var cellsUsed = _worksheet.CellsUsed();
-                Count = cellsUsed.Max(c => c.Address.ColumnNumber) -
-                    cellsUsed.Min(c => c.Address.ColumnNumber) + 1;
-            }
+            Count = _worksheet.CellsUsed().Max(c => c.Address.ColumnNumber) -
+                _worksheet.CellsUsed().Min(c => c.Address.ColumnNumber) + 1;
 
             Context = new CsvContext(this);
             _leaveOpen = Configuration.LeaveOpen;
@@ -160,7 +142,8 @@ namespace CsvHelper.Excel
 
         public bool Read()
         {
-            if (Row > _lastRow)
+            var row = _worksheet.Row(Row);
+            if (!row.CellsUsed().Any())
             {
                 return false;
             }
@@ -173,12 +156,12 @@ namespace CsvHelper.Excel
 
         public Task<bool> ReadAsync()
         {
-            if (Row > _lastRow)
+            var row = _worksheet.Row(Row);
+            if (!row.CellsUsed().Any())
             {
                 return Task.FromResult(false);
             }
 
-            _currentRecord = GetRecord();
             _row++;
             _rawRow++;
             return Task.FromResult(true);
