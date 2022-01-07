@@ -77,7 +77,6 @@ namespace CsvHelper.Excel
 		/// <param name="leaveOpen"><c>true</c> to leave the <see cref="TextWriter"/> open after the <see cref="ExcelWriter"/> object is disposed, otherwise <c>false</c>.</param>
 		public ExcelWriter(Stream stream, string sheetName, CultureInfo culture, bool leaveOpen = false) : this(stream, sheetName, new CsvConfiguration(culture, leaveOpen: leaveOpen)) { }
 
-
 		/// <summary>
 		/// Initializes a new instance of the <see cref="ExcelWriter"/> class.
 		/// </summary>
