@@ -22,7 +22,7 @@ namespace CsvHelper.Excel
         private readonly Stream _stream;
         private int _rawRow = 1;
         private string[] _currentRecord;
-        private int _lastRow;
+        private readonly int _lastRow;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ExcelParser"/> class.
@@ -83,7 +83,7 @@ namespace CsvHelper.Excel
         /// <param name="culture">The culture.</param>
         /// <param name="leaveOpen"><c>true</c> to leave the <see cref="TextWriter"/> open after the <see cref="ExcelParser"/> object is disposed, otherwise <c>false</c>.</param>
         public ExcelParser(Stream stream, string sheetName, CultureInfo culture, bool leaveOpen = false) : this(stream,
-            sheetName, new CsvConfiguration(culture) {LeaveOpen = leaveOpen})
+            sheetName, new CsvConfiguration(culture) {LeaveOpen= leaveOpen})
         {
         }
 
@@ -195,6 +195,8 @@ namespace CsvHelper.Excel
         public string RawRecord => string.Join(Configuration.Delimiter, Record);
         public int Row => _row;
         public int RawRow => _rawRow;
+
+        public string Delimiter => Configuration.Delimiter;
         public CsvContext Context { get; }
         public IParserConfiguration Configuration { get; }
 
@@ -203,7 +205,10 @@ namespace CsvHelper.Excel
         {
             var currentRow = _worksheet.Row(Row);
             var cells = currentRow.Cells(1, Count);
-            var values = cells.Select(x => x.Value.ToString()).ToArray();
+            var values = Configuration.TrimOptions.HasFlag(TrimOptions.Trim)
+                ? cells.Select(x => x.Value.ToString()?.Trim()).ToArray()
+                : cells.Select(x => x.Value.ToString()).ToArray();
+
             return values;
         }
     }
