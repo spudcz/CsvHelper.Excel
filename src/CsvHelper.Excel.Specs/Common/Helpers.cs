@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using ClosedXML.Excel;
 
 namespace CsvHelper.Excel.Specs.Common
@@ -9,12 +9,12 @@ namespace CsvHelper.Excel.Specs.Common
         {
             if (!File.Exists(path))
             {
-                var workbook = new XLWorkbook(XLEventTracking.Disabled);
+                var workbook = new XLWorkbook();
                 workbook.GetOrAddWorksheet(worksheetName);
                 workbook.SaveAs(path);
                 return workbook;
             }
-            return new XLWorkbook(path, XLEventTracking.Disabled);
+            return new XLWorkbook(path);
         }
 
         public static IXLWorksheet GetOrAddWorksheet(this XLWorkbook workbook, string sheetName)
